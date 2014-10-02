@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<meta name="format-detection" content="telephone=no" />
+<meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi" />
+
+<title>Hello World</title>
+
+<!-- CSS -->
+<link rel="stylesheet" type="text/css" href="css/index.css" />
+<link rel="stylesheet" type="text/css" href="css/jquery.mobile-1.4.2.min.css" />
+<link rel="stylesheet" href="http://example.gajotres.net/iscrollview/jquery.mobile.iscrollview.css"/>
+<link rel="stylesheet" href="http://example.gajotres.net/iscrollview/jquery.mobile.iscrollview-pull.css"/>
+<style>
+   .ui-content {
+       padding: 0 !important;
+   }
+     
+   .ui-listview {
+       margin: 0 !important;
+   }
+     
+   .example-wrapper, .example-wrapper div.iscroll-scroller {
+       width: 100% !important;
+   }
+</style>
+
+<!-- JS -->
+<script type="text/javascript" src="cordova.js"></script>
+<script type="text/javascript" src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+<script type="text/javascript" src="js/jquery.mobile-1.4.2.min.js"></script>
+<script type="text/javascript" src="http://example.gajotres.net/iscrollview/iscroll.js"></script>
+<script	type="text/javascript" src="http://example.gajotres.net/iscrollview/jquery.mobile.iscrollview.js"></script>
+
+
+<script type="text/javascript">
+	var db,
+		theme = $.mobile.loader.prototype.options.theme;
+	document.addEventListener("deviceready", onDeviceReady, false);
+
+	function populateDB(){		
+		$.mobile.loading( "show", {theme: theme});		
+		db.transaction(insertDB, errorCB, successCB);
+	}
+	
+	// Populate the database 
+	function insertDB(tx) {
+		tx.executeSql('DROP TABLE IF EXISTS CLIENTES');
+		tx.executeSql('CREATE TABLE IF NOT EXISTS CLIENTES (id INTEGER PRIMARY KEY AUTOINCREMENT, nome VARCHAR(50) NOT NULL)');
+		var len = $('#registry').val();		
+		for (var i = 1; i < len; i++){
+			tx.executeSql('INSERT INTO CLIENTES (nome) VALUES ("Cliente '+i+'")');
+		}		
+	}
+
+	// Query the database
+	function queryDB(tx) {
+		tx.executeSql('SELECT * FROM CLIENTES', [], querySuccess, errorCB);
+	}
+
+	// Query the success callback
+	function querySuccess(tx, results) {
+		var html = "";
+		var len = results.rows.length;
+		for (var i = 0; i < len; i++){
+			html += '<li><a href="" data-id='+results.rows.item(i).id +'">'+results.rows.item(i).id +': '+ results.rows.item(i).nome+"</a></li>";
+		}
+		$('#client-list').html(html);
+		$('#client-list').listview('refresh');
+	}
+
+	// Transaction error callback
+	function errorCB(err) {
+		alert("Error processing SQL: " + err.code);
+	}
+
+	// Transaction success callback
+	function successCB() {
+		alert("Success!");
+		$.mobile.loading( "hide" );
+	}
+
+	function clearList(){
+		$('#client-list').html('<li>Empty list</li>');
+		$('#client-list').listview('refresh');		
+	}	
+
+	function loadList(){
+		$('#client-list').html('<li>Loading...</li>');
+		$('#client-list').listview('refresh');		
+		db.transaction(queryDB, errorCB);
+	}
+	
+	// PhoneGap is ready
+	function onDeviceReady() {
+		db = window.openDatabase("dbTeste", "1.0", "PhoneGap Demo", 200000);
+		$(".example-wrapper").iscrollview("refresh");
+	}
+</script>
+</head>
+<body>
+	<h1>Phonegap + JQuery Mobile - Listview</h1>
+ <div data-role="page" id="home">
+            <div data-theme="a" data-role="header">
+                <h3>
+                    List Clients
+                </h3>
+            </div>       
+            <div data-role="content">
+                <div class="example-wrapper" data-iscroll>
+	            	<div data-theme="a" id="frm_registry">
+		            	<label for="text-basic">Registry count:</label>
+						<input type="text" type="number" name="number" pattern="[0-9]*" id="registry" value="">
+						<button class="ui-shadow ui-btn ui-corner-all" onclick="populateDB()">Populate DB</button>
+		            	<button class="ui-shadow ui-btn ui-corner-all" onclick="loadList()">Load ListView</button>
+		            	<button class="ui-shadow ui-btn ui-corner-all" onclick="clearList()">Clear ListView</button>
+	            	</div>
+                    <ul data-role="listview"  id="client-list" data-theme="a">
+                         
+                    </ul>
+                </div>
+            </div>
+            <div data-theme="a" data-role="footer">
+                <h1>Copyright 2014</h1>
+            </div>             
+        </div>
+        <div data-role="page" id="headline">
+            <div data-theme="a" data-role="header">
+                <a href="#home" class="ui-btn-left" data-transition="slide" data-direction="reverse">Back</a>                       
+                <h3>
+                    Client Info
+                </h3>
+            </div>       
+            <div data-role="content">
+                <ul data-role="listview"  id="client-data" data-theme="a">
+                     
+                </ul>
+            </div>
+        </div>
+</body>
+</html>
